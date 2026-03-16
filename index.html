@@ -3,378 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 비트코인 투자 리포트</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>AI Institutional Trading Terminal | BTC</title>
+    <!-- TradingView Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f2f4f6; /* 토스풍 라이트 그레이 */
-            --card-bg: #ffffff;
-            --accent-color: #3182f6; /* 토스 블루 */
-            --text-primary: #191f28;
-            --text-secondary: #4e5968;
-            --buy-color: #f04452; /* 한국인 친숙한 매수(빨강) */
-            --sell-color: #3182f6; /* 매도(파랑) */
-            --hold-color: #8b95a1;
-            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --bg-terminal: #0b0e11; /* Binance-style deep dark */
+            --card-bg: #161a1e;
+            --border-color: #2b2f36;
+            --text-main: #eaecef;
+            --text-dim: #848e9c;
+            --accent: #fcd535; /* Gold accent */
+            --buy: #00c076;
+            --sell: #cf304a;
+            --hold: #474d57;
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            font-family: var(--font-main);
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            padding: 24px;
-            -webkit-font-smoothing: antialiased;
+            background-color: var(--bg-terminal);
+            color: var(--text-main);
+            padding: 16px;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 1000px;
+        .terminal-container {
+            max-width: 1400px;
             margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 16px;
         }
 
+        @media (max-width: 1100px) {
+            .terminal-container { grid-template-columns: 1fr; }
+        }
+
+        /* Top Bar */
         header {
-            margin-bottom: 32px;
+            grid-column: 1 / -1;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
+            padding: 12px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 8px;
         }
 
-        h1 {
-            font-size: 28px;
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-badge { background: var(--accent); color: #000; padding: 4px 8px; border-radius: 4px; font-weight: 800; font-size: 12px; }
+        .market-ticker { font-weight: 700; font-size: 18px; }
+
+        /* Left Side: Charts */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+        }
+
+        #tvChart {
+            width: 100%;
+            height: 550px;
+        }
+
+        /* Right Side: Analysis & History */
+        .side-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .price-display {
+            font-size: 32px;
+            font-family: var(--font-mono);
             font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
+            margin-bottom: 8px;
         }
 
-        .subtitle {
+        .decision-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 700;
             font-size: 16px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
+            text-align: center;
+            width: 100%;
             margin-bottom: 20px;
         }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 28px; /* 애플/토스 특유의 둥근 모서리 */
-            padding: 32px;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.2s ease;
-        }
+        .badge-buy { background: rgba(0, 192, 118, 0.15); color: var(--buy); border: 1px solid var(--buy); }
+        .badge-sell { background: rgba(207, 48, 74, 0.15); color: var(--sell); border: 1px solid var(--sell); }
+        .badge-hold { background: rgba(71, 77, 87, 0.15); color: var(--hold); border: 1px solid var(--hold); }
 
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .main-stats {
+        .indicator-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
 
-        .stat-box {
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 20px;
-            text-align: left;
+        .indicator-item {
+            background: #1e2329;
+            padding: 12px;
+            border-radius: 8px;
         }
 
-        .stat-label {
+        .ind-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+        .ind-value { font-size: 14px; font-weight: 600; }
+
+        .analysis-text {
             font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .reasoning-box {
-            background: #f2f4f6;
-            padding: 24px;
-            border-radius: 20px;
-            margin-top: 16px;
-        }
-
-        .reasoning-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--accent-color);
-            margin-bottom: 8px;
-        }
-
-        .reasoning-text {
-            font-size: 15px;
             line-height: 1.6;
-            color: var(--text-secondary);
-        }
-
-        .chart-container {
-            height: 300px;
-            margin: 20px 0;
-        }
-
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
-        }
-
-        .history-table th {
-            text-align: left;
+            background: #1e2329;
             padding: 16px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            border-bottom: 1px solid #eff2f5;
+            border-radius: 8px;
+            color: var(--text-main);
         }
 
-        .history-table td {
-            padding: 20px 16px;
-            font-size: 15px;
-            border-bottom: 1px solid #f9fafb;
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
         }
 
-        .tag {
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .tag-buy { background: #fff0f0; color: var(--buy-color); }
-        .tag-sell { background: #e8f3ff; color: var(--sell-color); }
-        .tag-hold { background: #f2f4f6; color: var(--hold-color); }
+        .history-time { font-size: 12px; color: var(--text-dim); }
+        .history-price { font-family: var(--font-mono); font-size: 13px; }
 
-        .price-up { color: var(--buy-color); }
-        .price-down { color: var(--sell-color); }
-
-        @media (max-width: 768px) {
-            .main-stats { grid-template-columns: 1fr; }
-            body { padding: 16px; }
-            .card { padding: 24px; }
-        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="terminal-container">
         <header>
-            <div>
-                <h1>비트코인 전략 리포트</h1>
-                <p class="subtitle">AI가 분석한 실시간 투자 가이드</p>
+            <div class="logo-area">
+                <div class="logo-badge">PRO-AI</div>
+                <div class="market-ticker">BTC / KRW</div>
             </div>
-            <div id="lastUpdate" style="font-size: 13px; color: var(--text-secondary);">업데이트 확인 중...</div>
+            <div id="connectionStatus" style="font-size: 12px; color: var(--buy);">● Terminal Live</div>
         </header>
 
-        <div class="grid">
-            <!-- 요약 카드 -->
-            <div class="card">
-                <div class="card-title">오늘의 요약</div>
-                <div class="main-stats">
-                    <div class="stat-box">
-                        <div class="stat-label">현재 가격</div>
-                        <div class="stat-value" id="currentPrice">---</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">AI 판단</div>
-                        <div class="stat-value" id="latestDecision">---</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label" id="profitLabel">분석 신뢰도</div>
-                        <div class="stat-value" id="profitValue">---</div>
-                    </div>
-                </div>
+        <!-- Main Chart Section -->
+        <div class="main-content">
+            <div class="chart-card">
+                <div class="panel-title">Institutional Advanced Charting <span id="chartTicker">BTCUSDT (Upbit)</span></div>
+                <div id="tvChart"></div>
+            </div>
+        </div>
 
-                <!-- 추가 지표 섹션 -->
-                <div class="main-stats" style="grid-template-columns: repeat(4, 1fr); margin-top: -8px;">
-                    <div class="stat-box" style="padding: 12px 20px;">
-                        <div class="stat-label" style="font-size: 11px;">RSI</div>
-                        <div class="stat-value" id="rsiVal" style="font-size: 16px;">--</div>
+        <!-- Sidebar Section -->
+        <div class="side-bar">
+            <!-- Market Status Panel -->
+            <div class="panel">
+                <div class="panel-title">Real-time Terminal</div>
+                <div class="price-display" id="mainPrice">--</div>
+                <div id="mainDecision" class="decision-badge badge-hold">AWAITING SIGNAL</div>
+                
+                <div class="indicator-grid">
+                    <div class="indicator-item">
+                        <div class="ind-label">RSI (14)</div>
+                        <div class="ind-value" id="rsiVal">--</div>
                     </div>
-                    <div class="stat-box" style="padding: 12px 20px;">
-                        <div class="stat-label" style="font-size: 11px;">MFI (자금흐름)</div>
-                        <div class="stat-value" id="mfiVal" style="font-size: 16px;">--</div>
+                    <div class="indicator-item">
+                        <div class="ind-label">MFI</div>
+                        <div class="ind-value" id="mfiVal">--</div>
                     </div>
-                    <div class="stat-box" style="padding: 12px 20px;">
-                        <div class="stat-label" style="font-size: 11px;">SuperTrend</div>
-                        <div class="stat-value" id="superTrendVal" style="font-size: 16px;">--</div>
+                    <div class="indicator-item">
+                        <div class="ind-label">SuperTrend</div>
+                        <div class="ind-value" id="stVal">--</div>
                     </div>
-                    <div class="stat-box" style="padding: 12px 20px;">
-                        <div class="stat-label" style="font-size: 11px;">Ichimoku</div>
-                        <div class="stat-value" id="ichimokuVal" style="font-size: 16px;">--</div>
+                    <div class="indicator-item">
+                        <div class="ind-label">Trend Structure</div>
+                        <div class="ind-value" id="trendVal">--</div>
                     </div>
-                </div>
-
-                <div class="reasoning-box">
-                    <div class="reasoning-label">AI의 상세 분석</div>
-                    <div id="latestReason" class="reasoning-text">데이터를 불러오는 중입니다...</div>
                 </div>
             </div>
 
-            <!-- 차트 카드 -->
-            <div class="card">
-                <div class="card-title">시세 추이와 매매 신호</div>
-                <div class="chart-container">
-                    <canvas id="priceChart"></canvas>
-                </div>
+            <!-- AI Insight Panel -->
+            <div class="panel">
+                <div class="panel-title">AI Quantitative Insight</div>
+                <div id="aiReason" class="analysis-text">퀀트 엔진 분석 데이터 수신 중...</div>
             </div>
 
-            <!-- 내역 카드 -->
-            <div class="card">
-                <div class="card-title">분석 히스토리</div>
-                <div style="overflow-x: auto;">
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>시간</th>
-                                <th>결정</th>
-                                <th>가격</th>
-                                <th>신뢰도</th>
-                                <th>분석 요약</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyBody"></tbody>
-                    </table>
-                </div>
+            <!-- Trade History -->
+            <div class="panel">
+                <div class="panel-title">Log History</div>
+                <div class="history-list" id="historyList"></div>
             </div>
         </div>
     </div>
 
     <script>
-        async function loadData() {
-            try {
-                const response = await fetch('logs/trading_log.json');
-                const data = await response.json();
-                const logs = data.slice().reverse();
+        let chart, candleSeries, volumeSeries, rsiSeries, ema20Series, ema50Series;
 
-                if (logs.length > 0) {
-                    const latest = logs[0];
-                    document.getElementById('currentPrice').innerText = latest.current_price.toLocaleString() + '원';
-                    document.getElementById('latestDecision').innerText = latest.decision === 'BUY' ? '매수' : (latest.decision === 'SELL' ? '매도' : '관망');
-                    document.getElementById('latestDecision').className = 'stat-value ' + (latest.decision === 'BUY' ? 'price-up' : (latest.decision === 'SELL' ? 'price-down' : ''));
-                    
-                    // 수익률 또는 신뢰도 표시
-                    const profitLabel = document.getElementById('profitLabel');
-                    const profitValue = document.getElementById('profitValue');
-                    
-                    if (latest.balance > 0 && latest.avg_buy_price > 0) {
-                        const profitRate = ((latest.current_price - latest.avg_buy_price) / latest.avg_buy_price) * 100;
-                        profitLabel.innerText = "현재 수익률";
-                        profitValue.innerText = profitRate.toFixed(2) + "%";
-                        profitValue.style.color = profitRate >= 0 ? 'var(--buy-color)' : 'var(--sell-color)';
-                    } else {
-                        profitLabel.innerText = "분석 신뢰도";
-                        profitValue.innerText = (latest.confidence * 100).toFixed(0) + "%";
-                        profitValue.style.color = 'var(--text-primary)';
-                    }
-
-                    // 추가 보조지표 표시
-                    if (latest.market_summary_now) {
-                        const msn = latest.market_summary_now;
-                        document.getElementById('rsiVal').innerText = msn.rsi || '--';
-                        document.getElementById('mfiVal').innerText = msn.mfi || '--';
-                        document.getElementById('superTrendVal').innerText = msn.supertrend === 1 ? '상승' : (msn.supertrend === -1 ? '하락' : '--');
-                        document.getElementById('superTrendVal').style.color = msn.supertrend === 1 ? 'var(--buy-color)' : 'var(--sell-color)';
-                        document.getElementById('ichimokuVal').innerText = msn.ichimoku_signal === 'Above Cloud' ? '구름위' : '구름아래';
-                        document.getElementById('ichimokuVal').style.color = msn.ichimoku_signal === 'Above Cloud' ? 'var(--buy-color)' : 'var(--sell-color)';
-                    }
-
-                    document.getElementById('latestReason').innerText = latest.reason;
-                    document.getElementById('lastUpdate').innerText = '최근 분석: ' + latest.timestamp;
-
-                    const historyBody = document.getElementById('historyBody');
-                    historyBody.innerHTML = logs.map(log => {
-                        const decisionKR = log.decision === 'BUY' ? '매수' : (log.decision === 'SELL' ? '매도' : '관망');
-                        const tagClass = log.decision === 'BUY' ? 'tag-buy' : (log.decision === 'SELL' ? 'tag-sell' : 'tag-hold');
-                        return `
-                            <tr>
-                                <td style="color: var(--text-secondary); font-size: 13px;">${log.timestamp.split(' ')[1]}</td>
-                                <td><span class="tag ${tagClass}">${decisionKR}</span></td>
-                                <td style="font-weight: 600;">${log.current_price.toLocaleString()}원</td>
-                                <td>${(log.confidence * 100).toFixed(0)}%</td>
-                                <td class="reasoning-text" style="font-size: 13px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${log.reason}</td>
-                            </tr>
-                        `;
-                    }).join('');
-
-                    updateChart(logs.slice().reverse());
-                }
-            } catch (error) {
-                console.error('데이터 로드 실패:', error);
-            }
-        }
-
-        function updateChart(logs) {
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            const labels = logs.map(l => l.timestamp.split(' ')[1]);
-            const prices = logs.map(l => l.current_price);
-            
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '비트코인 가격',
-                        data: prices,
-                        borderColor: '#3182f6',
-                        backgroundColor: (context) => {
-                            const chart = context.chart;
-                            const {ctx, chartArea} = chart;
-                            if (!chartArea) return null;
-                            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                            gradient.addColorStop(0, 'rgba(49, 130, 246, 0.2)');
-                            gradient.addColorStop(1, 'rgba(49, 130, 246, 0)');
-                            return gradient;
-                        },
-                        borderWidth: 4,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: logs.map(l => 
-                            l.decision === 'BUY' ? '#f04452' : (l.decision === 'SELL' ? '#3182f6' : '#8b95a1')
-                        ),
-                        pointRadius: 5,
-                        pointHoverRadius: 8
-                    }]
+        function initChart() {
+            const chartOptions = {
+                layout: {
+                    background: { type: 'solid', color: '#161a1e' },
+                    textColor: '#d1d4dc',
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#8b95a1', font: { size: 11 } } },
-                        y: { 
-                            grid: { color: '#f2f4f6' }, 
-                            ticks: { 
-                                color: '#8b95a1', 
-                                font: { size: 11 },
-                                callback: function(value) { return (value/10000).toLocaleString() + '만'; }
-                            } 
-                        }
-                    }
-                }
+                grid: {
+                    vertLines: { color: 'rgba(42, 46, 57, 0.5)' },
+                    horzLines: { color: 'rgba(42, 46, 57, 0.5)' },
+                },
+                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                priceScale: { borderColor: '#485c7b' },
+                timeScale: { borderColor: '#485c7b', timeVisible: true, secondsVisible: false },
+            };
+
+            chart = LightweightCharts.createChart(document.getElementById('tvChart'), chartOptions);
+            
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
+                wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+            });
+
+            // Volume Series
+            volumeSeries = chart.addHistogramSeries({
+                color: '#26a69a',
+                priceFormat: { type: 'volume' },
+                priceScaleId: '', // Overlay over price
+            });
+            volumeSeries.priceScale().applyOptions({
+                scaleMargins: { top: 0.8, bottom: 0 },
+            });
+
+            // EMA Series
+            ema20Series = chart.addLineSeries({ color: '#2962FF', lineWidth: 1, title: 'EMA 20' });
+            ema50Series = chart.addLineSeries({ color: '#FF6D00', lineWidth: 1, title: 'EMA 50' });
+
+            window.addEventListener('resize', () => {
+                chart.applyOptions({ width: document.getElementById('tvChart').clientWidth });
             });
         }
 
-        loadData();
+        async function loadTradingData() {
+            try {
+                const response = await fetch('logs/trading_log.json');
+                const data = await response.json();
+                
+                if (data.length === 0) return;
+
+                const latest = data[data.length - 1];
+                updateUI(latest);
+                updateHistory(data);
+
+                // Prepare Chart Data
+                const ohlcvData = latest.ohlcv_with_indicators_last_24h;
+                const candleData = [];
+                const volumeData = [];
+                const ema20Data = [];
+                const ema50Data = [];
+
+                // Sort by time
+                const sortedTimeKeys = Object.keys(ohlcvData).sort();
+                
+                sortedTimeKeys.forEach(timeStr => {
+                    const d = ohlcvData[timeStr];
+                    const timestamp = Math.floor(new Date(timeStr).getTime() / 1000);
+                    
+                    candleData.push({
+                        time: timestamp,
+                        open: d.open, high: d.high, low: d.low, close: d.close
+                    });
+                    
+                    volumeData.push({
+                        time: timestamp,
+                        value: d.volume,
+                        color: d.close >= d.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)'
+                    });
+
+                    if (d.ema_20) ema20Data.push({ time: timestamp, value: d.ema_20 });
+                    if (d.ema_50) ema50Data.push({ time: timestamp, value: d.ema_50 });
+                });
+
+                candleSeries.setData(candleData);
+                volumeSeries.setData(volumeData);
+                ema20Series.setData(ema20Data);
+                ema50Series.setData(ema50Data);
+
+                // Fitting the chart
+                chart.timeScale().fitContent();
+
+            } catch (error) {
+                console.error('Data loading error:', error);
+            }
+        }
+
+        function updateUI(latest) {
+            document.getElementById('mainPrice').innerText = latest.current_price.toLocaleString() + ' KRW';
+            const decision = latest.decision;
+            const badge = document.getElementById('mainDecision');
+            badge.innerText = decision === 'BUY' ? 'STRONGE BUY SIGNAL' : (decision === 'SELL' ? 'SELL SIGNAL' : 'NEUTRAL / HOLD');
+            badge.className = 'decision-badge ' + (decision === 'BUY' ? 'badge-buy' : (decision === 'SELL' ? 'badge-sell' : 'badge-hold'));
+
+            if (latest.market_summary_now) {
+                const msn = latest.market_summary_now;
+                document.getElementById('rsiVal').innerText = msn.rsi || '--';
+                document.getElementById('mfiVal').innerText = msn.mfi || '--';
+                document.getElementById('stVal').innerText = msn.supertrend === 1 ? 'Bullish' : (msn.supertrend === -1 ? 'Bearish' : '--');
+                document.getElementById('stVal').style.color = msn.supertrend === 1 ? 'var(--buy)' : 'var(--sell)';
+                document.getElementById('trendVal').innerText = msn.trend_ema20_vs_50 || '--';
+            }
+
+            document.getElementById('aiReason').innerText = latest.reason;
+        }
+
+        function updateHistory(data) {
+            const list = document.getElementById('historyList');
+            const reverseData = data.slice().reverse();
+            list.innerHTML = reverseData.slice(0, 20).map(log => `
+                <div class="history-item">
+                    <div>
+                        <div class="history-price">${log.current_price.toLocaleString()}</div>
+                        <div class="history-time">${log.timestamp.split(' ')[1]}</div>
+                    </div>
+                    <div style="font-weight: 700; color: ${log.decision === 'BUY' ? 'var(--buy)' : (log.decision === 'SELL' ? 'var(--sell)' : 'var(--text-dim)')}">
+                        ${log.decision}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        initChart();
+        loadTradingData();
+        // Refresh every minute for pro feel
+        setInterval(loadTradingData, 60000);
     </script>
 </body>
 </html>
