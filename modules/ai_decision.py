@@ -20,22 +20,22 @@ class AIDecider:
 
         You are provided with:
         1. Current Price and 24h Summary.
-        2. Technical Indicators:
+        2. Technical Indicators (from Advanced TA Library):
            - RSI: > 70 overbought, < 30 oversold.
            - MACD: Crossovers and momentum.
-           - Bollinger Bands: Volatility and reversal.
-           - Stochastic Oscillator (stoch_k, stoch_d): High-sensitivity overbought/oversold indicator.
+           - SuperTrend: Trend direction (1 for Bullish, -1 for Bearish).
+           - Ichimoku Cloud: Check if price is 'Above Cloud' (Bullish) or 'Below Cloud' (Bearish).
+           - MFI (Money Flow Index): Volume-weighted RSI. High (>80) is overbought, Low (<20) is oversold.
            - ADX: Measures trend strength (values > 25 indicate a strong trend).
            - EMA (20, 50, 200): Trend confirmation. Check for Golden Cross (Short > Long) or Death Cross.
            - ATR: Measures volatility (higher ATR means higher risk/reward).
-           - OBV: Volume-based indicator to confirm price trends.
         3. Detailed 24-hour OHLCV data with hourly indicators.
 
         Strategic Guidelines:
         - Prioritize Capital Preservation: If the technical signals are conflicting or the trend is weak, choose 'HOLD'.
         - Fee Awareness: Each trade on Upbit costs 0.05%. Your expected profit must significantly exceed this to justify a 'BUY' or 'SELL'.
-        - Multi-Factor Analysis: Look for convergence between different indicators (e.g., oversold RSI + MACD bullish crossover).
-        - Risk Management: Avoid buying at the top of Bollinger Bands or selling at the bottom unless a strong breakout is confirmed.
+        - Multi-Factor Analysis: Look for convergence between different indicators (e.g., oversold RSI + SuperTrend Bullish + Above Ichimoku Cloud).
+        - Risk Management: Avoid buying at the top of volatility ranges unless a strong breakout is confirmed by volume (MFI).
 
         Your response must be a strict JSON object:
         {

@@ -2,6 +2,7 @@ import pyupbit
 import pandas as pd
 from typing import Dict, Optional
 import ta
+import pandas_ta as pta
 from ta.momentum import RSIIndicator
 from ta.trend import MACD
 from ta.volatility import BollingerBands
@@ -62,48 +63,53 @@ def get_market_analysis_data(ticker: str = "KRW-BTC") -> Dict:
     Fetches rich market data for AI analysis, including technical indicators.
     """
     try:
-        # Fetch hourly data for the last 100 hours to have enough data for indicators
-        df = pyupbit.get_ohlcv(ticker, interval="minute60", count=100)
+        # Fetch hourly data for the last 200 hours for EMA 200 and other long-term indicators
+        df = pyupbit.get_ohlcv(ticker, interval="minute60", count=200)
         
         if df is None or df.empty:
             return {"error": "Failed to retrieve OHLCV data"}
 
-        # 1. Add Technical Indicators
-        # RSI
+        # --- 1. Basic Indicators (using ta library) ---
         df['rsi'] = RSIIndicator(close=df['close'], window=14).rsi()
-        
-        # MACD
         macd = MACD(close=df['close'])
         df['macd'] = macd.macd()
         df['macd_signal'] = macd.macd_signal()
         df['macd_diff'] = macd.macd_diff()
-        
-        # Bollinger Bands
         bb = BollingerBands(close=df['close'])
         df['bb_high'] = bb.bollinger_hband()
         df['bb_low'] = bb.bollinger_lband()
         df['bb_mid'] = bb.bollinger_mavg()
 
-        # --- NEW INDICATORS ---
-        # 1. Stochastic Oscillator
-        stoch = ta.momentum.StochasticOscillator(high=df['high'], low=df['low'], close=df['close'], window=14, smooth_window=3)
-        df['stoch_k'] = stoch.stoch()
-        df['stoch_d'] = stoch.stoch_signal()
+        # --- 2. Advanced Indicators (using pandas-ta GitHub library) ---
+        # SuperTrend
+        supertrend = df.ta.supertrend(length=7, multiplier=3.0)
+        if supertrend is not None:
+            df['supertrend'] = supertrend['SUPERT_7_3.0']
+            df['supertrend_direction'] = supertrend['SUPERTd_7_3.0'] # 1 for long, -1 for short
 
-        # 2. ADX (Average Directional Index) - Trend Strength
-        adx = ta.trend.ADXIndicator(high=df['high'], low=df['low'], close=df['close'], window=14)
-        df['adx'] = adx.adx()
+        # Ichimoku Cloud
+        ichimoku, span = df.ta.ichimoku()
+        if ichimoku is not None:
+            df['span_a'] = ichimoku['ITS_9']
+            df['span_b'] = ichimoku['IKS_26']
+            df['lead_span_a'] = ichimoku['ISPAN_A_26']
+            df['lead_span_b'] = ichimoku['ISPAN_B_52']
 
-        # 3. Moving Averages (EMA 20, 50, 200) - Trend Confirmation
-        df['ema_20'] = ta.trend.EMAIndicator(close=df['close'], window=20).ema_indicator()
-        df['ema_50'] = ta.trend.EMAIndicator(close=df['close'], window=50).ema_indicator()
-        df['ema_200'] = ta.trend.EMAIndicator(close=df['close'], window=200).ema_indicator()
+        # Money Flow Index (MFI)
+        df['mfi'] = df.ta.mfi(length=14)
 
-        # 4. ATR (Average True Range) - Volatility
-        df['atr'] = ta.volatility.AverageTrueRange(high=df['high'], low=df['low'], close=df['close'], window=14).average_true_range()
+        # EMA Cloud
+        df['ema_20'] = df.ta.ema(length=20)
+        df['ema_50'] = df.ta.ema(length=50)
+        df['ema_200'] = df.ta.ema(length=200)
 
-        # 5. OBV (On-Balance Volume) - Volume Trend
-        df['obv'] = ta.volume.OnBalanceVolumeIndicator(close=df['close'], volume=df['volume']).on_balance_volume()
+        # ADX (Trend Strength)
+        df_adx = df.ta.adx()
+        if df_adx is not None:
+            df['adx'] = df_adx['ADX_14']
+
+        # ATR (Volatility)
+        df['atr'] = df.ta.atr(length=14)
 
         # 2. Get the latest 24 hours of data including indicators
         last_24h_df = df.tail(24).copy()
@@ -116,12 +122,14 @@ def get_market_analysis_data(ticker: str = "KRW-BTC") -> Dict:
             "ticker": ticker,
             "current_price": pyupbit.get_current_price(ticker),
             "market_summary_now": {
-                "rsi": round(last_24h_df['rsi'].iloc[-1], 2),
-                "macd": round(last_24h_df['macd'].iloc[-1], 2),
-                "stoch_k": round(last_24h_df['stoch_k'].iloc[-1], 2),
-                "adx": round(last_24h_df['adx'].iloc[-1], 2),
+                "rsi": round(last_24h_df['rsi'].iloc[-1], 2) if 'rsi' in last_24h_df else None,
+                "macd": round(last_24h_df['macd'].iloc[-1], 2) if 'macd' in last_24h_df else None,
+                "supertrend": last_24h_df['supertrend_direction'].iloc[-1] if 'supertrend_direction' in last_24h_df else None, # 1: Bull, -1: Bear
+                "mfi": round(last_24h_df['mfi'].iloc[-1], 2) if 'mfi' in last_24h_df else None,
+                "adx": round(last_24h_df['adx'].iloc[-1], 2) if 'adx' in last_24h_df else None,
+                "ichimoku_signal": "Above Cloud" if last_24h_df['close'].iloc[-1] > last_24h_df['lead_span_a'].iloc[-1] else "Below Cloud",
                 "trend_ema20_vs_50": "Bullish" if last_24h_df['ema_20'].iloc[-1] > last_24h_df['ema_50'].iloc[-1] else "Bearish",
-                "volatility_atr": round(last_24h_df['atr'].iloc[-1], 2)
+                "volatility_atr": round(last_24h_df['atr'].iloc[-1], 2) if 'atr' in last_24h_df else None
             },
             "ohlcv_with_indicators_last_24h": last_24h_df.to_dict(orient='index')
         }
