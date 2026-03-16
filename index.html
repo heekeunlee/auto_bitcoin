@@ -199,10 +199,31 @@
                         <div class="stat-value" id="latestDecision">---</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">분석 신뢰도</div>
-                        <div class="stat-value" id="latestConfidence">---</div>
+                        <div class="stat-label" id="profitLabel">분석 신뢰도</div>
+                        <div class="stat-value" id="profitValue">---</div>
                     </div>
                 </div>
+
+                <!-- 추가 지표 섹션 -->
+                <div class="main-stats" style="grid-template-columns: repeat(4, 1fr); margin-top: -8px;">
+                    <div class="stat-box" style="padding: 12px 20px;">
+                        <div class="stat-label" style="font-size: 11px;">RSI</div>
+                        <div class="stat-value" id="rsiVal" style="font-size: 16px;">--</div>
+                    </div>
+                    <div class="stat-box" style="padding: 12px 20px;">
+                        <div class="stat-label" style="font-size: 11px;">MFI (자금흐름)</div>
+                        <div class="stat-value" id="mfiVal" style="font-size: 16px;">--</div>
+                    </div>
+                    <div class="stat-box" style="padding: 12px 20px;">
+                        <div class="stat-label" style="font-size: 11px;">SuperTrend</div>
+                        <div class="stat-value" id="superTrendVal" style="font-size: 16px;">--</div>
+                    </div>
+                    <div class="stat-box" style="padding: 12px 20px;">
+                        <div class="stat-label" style="font-size: 11px;">Ichimoku</div>
+                        <div class="stat-value" id="ichimokuVal" style="font-size: 16px;">--</div>
+                    </div>
+                </div>
+
                 <div class="reasoning-box">
                     <div class="reasoning-label">AI의 상세 분석</div>
                     <div id="latestReason" class="reasoning-text">데이터를 불러오는 중입니다...</div>
@@ -251,9 +272,9 @@
                     document.getElementById('latestDecision').innerText = latest.decision === 'BUY' ? '매수' : (latest.decision === 'SELL' ? '매도' : '관망');
                     document.getElementById('latestDecision').className = 'stat-value ' + (latest.decision === 'BUY' ? 'price-up' : (latest.decision === 'SELL' ? 'price-down' : ''));
                     
-                    // 수익률 계산 로직 (평단가 대비)
-                    const profitLabel = document.querySelectorAll('.stat-label')[2];
-                    const profitValue = document.querySelectorAll('.stat-value')[2];
+                    // 수익률 또는 신뢰도 표시
+                    const profitLabel = document.getElementById('profitLabel');
+                    const profitValue = document.getElementById('profitValue');
                     
                     if (latest.balance > 0 && latest.avg_buy_price > 0) {
                         const profitRate = ((latest.current_price - latest.avg_buy_price) / latest.avg_buy_price) * 100;
@@ -261,9 +282,20 @@
                         profitValue.innerText = profitRate.toFixed(2) + "%";
                         profitValue.style.color = profitRate >= 0 ? 'var(--buy-color)' : 'var(--sell-color)';
                     } else {
-                        profitLabel.innerText = "보유 비중";
-                        profitValue.innerText = "0 BTC";
+                        profitLabel.innerText = "분석 신뢰도";
+                        profitValue.innerText = (latest.confidence * 100).toFixed(0) + "%";
                         profitValue.style.color = 'var(--text-primary)';
+                    }
+
+                    // 추가 보조지표 표시
+                    if (latest.market_summary_now) {
+                        const msn = latest.market_summary_now;
+                        document.getElementById('rsiVal').innerText = msn.rsi || '--';
+                        document.getElementById('mfiVal').innerText = msn.mfi || '--';
+                        document.getElementById('superTrendVal').innerText = msn.supertrend === 1 ? '상승' : (msn.supertrend === -1 ? '하락' : '--');
+                        document.getElementById('superTrendVal').style.color = msn.supertrend === 1 ? 'var(--buy-color)' : 'var(--sell-color)';
+                        document.getElementById('ichimokuVal').innerText = msn.ichimoku_signal === 'Above Cloud' ? '구름위' : '구름아래';
+                        document.getElementById('ichimokuVal').style.color = msn.ichimoku_signal === 'Above Cloud' ? 'var(--buy-color)' : 'var(--sell-color)';
                     }
 
                     document.getElementById('latestReason').innerText = latest.reason;
