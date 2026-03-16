@@ -35,7 +35,7 @@ class AIDecider:
         Your response must be a strict JSON object:
         {
             "decision": "BUY" | "SELL" | "HOLD",
-            "reason": "Explain your reasoning focusing on the technical indicators and price action",
+            "reason": "기술적 지표와 가격 액션에 기반하여 이유를 한국어로 상세히 설명해주세요.",
             "confidence": 0.0 to 1.0
         }
         """

@@ -5,6 +5,30 @@ import ta
 from ta.momentum import RSIIndicator
 from ta.trend import MACD
 from ta.volatility import BollingerBands
+import os
+from dotenv import load_dotenv
+
+def get_account_balance(ticker: str = "BTC") -> Dict:
+    """
+    Returns the current balance and average buy price for the given ticker.
+    """
+    try:
+        load_dotenv()
+        access = os.getenv('UPBIT_ACCESS_KEY')
+        secret = os.getenv('UPBIT_SECRET_KEY')
+        upbit = pyupbit.Upbit(access, secret)
+        
+        balances = upbit.get_balances()
+        for b in balances:
+            if b['currency'] == ticker:
+                return {
+                    "balance": float(b['balance']),
+                    "avg_buy_price": float(b['avg_buy_price']),
+                    "unit_currency": b['unit_currency']
+                }
+        return {"balance": 0.0, "avg_buy_price": 0.0, "unit_currency": "KRW"}
+    except Exception as e:
+        return {"error": str(e)}
 
 def get_current_status(ticker: str = "KRW-BTC") -> Dict:
     """

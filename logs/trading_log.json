@@ -5,5 +5,14 @@
         "decision": "HOLD",
         "reason": "The RSI is hovering around 65.81, indicating a slightly overbought condition but not extreme. The MACD is above the signal line (currently at 726343.22 vs. 667519.10), suggesting a bullish momentum, but the MACD diff is not particularly large. The price is near the upper Bollinger Band, indicating potential resistance. While there is some bullish sentiment, the indicators do not align strongly enough to suggest a clear buying opportunity, and the price is near a potential resistance point. Additionally, past hour's high volatility and volume suggest caution. Thus, capital preservation is prioritized by holding.",
         "confidence": 0.65
+    },
+    {
+        "timestamp": "2026-03-16 22:50:51",
+        "current_price": 109040000.0,
+        "balance": 0,
+        "avg_buy_price": 0,
+        "decision": "HOLD",
+        "reason": "현재 BTC 가격이 볼린저 밴드의 상단 근처에 위치하며 RSI 지표가 과매수 상태를 나타내고 있습니다(68.7). 이는 가격이 단기적으로 과도하게 상승했을 가능성을 시사합니다. MACD 지표는 현재 강력한 상승세를 보여주고 있지만, 이와 같은 기술적 신호들이 시장의 전환점에 있을 수 있음을 나타냅니다. 따라서 기술적 신호들이 상충하고 있어 보수적인 관점에서 관망하는 것이 좋습니다.",
+        "confidence": 0.7
     }
 ]

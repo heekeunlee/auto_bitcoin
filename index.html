@@ -250,7 +250,22 @@
                     document.getElementById('currentPrice').innerText = latest.current_price.toLocaleString() + '원';
                     document.getElementById('latestDecision').innerText = latest.decision === 'BUY' ? '매수' : (latest.decision === 'SELL' ? '매도' : '관망');
                     document.getElementById('latestDecision').className = 'stat-value ' + (latest.decision === 'BUY' ? 'price-up' : (latest.decision === 'SELL' ? 'price-down' : ''));
-                    document.getElementById('latestConfidence').innerText = (latest.confidence * 100).toFixed(0) + '%';
+                    
+                    // 수익률 계산 로직 (평단가 대비)
+                    const profitLabel = document.querySelectorAll('.stat-label')[2];
+                    const profitValue = document.querySelectorAll('.stat-value')[2];
+                    
+                    if (latest.balance > 0 && latest.avg_buy_price > 0) {
+                        const profitRate = ((latest.current_price - latest.avg_buy_price) / latest.avg_buy_price) * 100;
+                        profitLabel.innerText = "현재 수익률";
+                        profitValue.innerText = profitRate.toFixed(2) + "%";
+                        profitValue.style.color = profitRate >= 0 ? 'var(--buy-color)' : 'var(--sell-color)';
+                    } else {
+                        profitLabel.innerText = "보유 비중";
+                        profitValue.innerText = "0 BTC";
+                        profitValue.style.color = 'var(--text-primary)';
+                    }
+
                     document.getElementById('latestReason').innerText = latest.reason;
                     document.getElementById('lastUpdate').innerText = '최근 분석: ' + latest.timestamp;
 
