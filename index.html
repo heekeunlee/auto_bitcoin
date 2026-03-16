@@ -296,6 +296,11 @@
 
                 // Prepare Chart Data
                 const ohlcvData = latest.ohlcv_with_indicators_last_24h;
+                if (!ohlcvData) {
+                    console.warn("New indicator data format not found. Waiting for first execution of v1.2.0 script.");
+                    return;
+                }
+                
                 const candleData = [];
                 const volumeData = [];
                 const ema20Data = [];
