@@ -1,0 +1,9 @@
+[
+    {
+        "timestamp": "2026-03-16 22:24:45",
+        "current_price": 108569000.0,
+        "decision": "HOLD",
+        "reason": "The RSI is hovering around 65.81, indicating a slightly overbought condition but not extreme. The MACD is above the signal line (currently at 726343.22 vs. 667519.10), suggesting a bullish momentum, but the MACD diff is not particularly large. The price is near the upper Bollinger Band, indicating potential resistance. While there is some bullish sentiment, the indicators do not align strongly enough to suggest a clear buying opportunity, and the price is near a potential resistance point. Additionally, past hour's high volatility and volume suggest caution. Thus, capital preservation is prioritized by holding.",
+        "confidence": 0.65
+    }
+]

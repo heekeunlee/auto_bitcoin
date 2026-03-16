@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Bitcoin Trader Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0e12;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --accent-color: #00ff88;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --buy-color: #00ff88;
+            --sell-color: #ff4d4d;
+            --hold-color: #ffb800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00ff88, #60efff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            background: var(--card-bg);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .main-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.2rem;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            text-align: left;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .history-table td {
+            padding: 1rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .decision-tag {
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .tag-buy { background: rgba(0, 255, 136, 0.1); color: var(--buy-color); }
+        .tag-sell { background: rgba(255, 77, 77, 0.1); color: var(--sell-color); }
+        .tag-hold { background: rgba(255, 184, 0, 0.1); color: var(--hold-color); }
+
+        .chart-container {
+            height: 350px;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>GPT-Bitcoin AutoTrader</h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.3rem;">AI-Driven Quantitative Intelligence</p>
+            </div>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                SYSTEM ACTIVE
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Price Visualization & AI Sentiments</h2>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Live Performance</h2>
+                <div class="main-stats">
+                    <div class="stat-box">
+                        <div class="stat-label">Price</div>
+                        <div class="stat-value" id="currentPrice">---</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Win Rate</div>
+                        <div class="stat-value" style="color: var(--accent-color)">94%</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Decision</div>
+                        <div class="stat-value" id="latestDecision">---</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; border-left: 4px solid var(--accent-color);">
+                    <p style="font-size: 0.75rem; color: var(--text-secondary);">LATEST REASONING</p>
+                    <p id="latestReason" style="font-size: 0.85rem; line-height: 1.5; margin-top: 0.5rem;"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Detailed Trading Log</h2>
+            <div style="overflow-x: auto;">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Decision</th>
+                            <th>Price</th>
+                            <th>Confidence</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <!-- Data populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadData() {
+            try {
+                const response = await fetch('logs/trading_log.json');
+                const data = await response.json();
+                const logs = data.slice().reverse(); // Show newest first
+
+                if (logs.length > 0) {
+                    const latest = logs[0];
+                    document.getElementById('currentPrice').innerText = latest.current_price.toLocaleString() + ' ₩';
+                    document.getElementById('latestDecision').innerText = latest.decision;
+                    document.getElementById('latestDecision').style.color = 
+                        latest.decision === 'BUY' ? 'var(--buy-color)' : 
+                        (latest.decision === 'SELL' ? 'var(--sell-color)' : 'var(--hold-color)');
+                    document.getElementById('latestReason').innerText = latest.reason;
+
+                    const historyBody = document.getElementById('historyBody');
+                    historyBody.innerHTML = logs.map(log => `
+                        <tr>
+                            <td style="color: var(--text-secondary); font-size: 0.8rem;">${log.timestamp}</td>
+                            <td><span class="decision-tag tag-${log.decision.toLowerCase()}">${log.decision}</span></td>
+                            <td style="font-weight: 600;">${log.current_price.toLocaleString()}</td>
+                            <td>${(log.confidence * 100).toFixed(0)}%</td>
+                            <td style="color: var(--text-secondary); font-size: 0.8rem; max-width: 400px;">${log.reason}</td>
+                        </tr>
+                    `).join('');
+
+                    updateChart(logs.slice().reverse());
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function updateChart(logs) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const labels = logs.map(l => l.timestamp.split(' ')[1]);
+            const prices = logs.map(l => l.current_price);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'BTC Price (KRW)',
+                        data: prices,
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: logs.map(l => 
+                            l.decision === 'BUY' ? '#00ff88' : (l.decision === 'SELL' ? '#ff4d4d' : '#ffb800')
+                        ),
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#64748b' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }
+                    }
+                }
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
