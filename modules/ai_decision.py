@@ -21,9 +21,14 @@ class AIDecider:
         You are provided with:
         1. Current Price and 24h Summary.
         2. Technical Indicators:
-           - RSI (Relative Strength Index): Values > 70 generally indicate overbought conditions, while < 30 indicate oversold.
-           - MACD (Moving Average Convergence Divergence): Look for crossovers and trend strength.
-           - Bollinger Bands: Analyze price position relative to upper and lower bands for volatility and reversal signals.
+           - RSI: > 70 overbought, < 30 oversold.
+           - MACD: Crossovers and momentum.
+           - Bollinger Bands: Volatility and reversal.
+           - Stochastic Oscillator (stoch_k, stoch_d): High-sensitivity overbought/oversold indicator.
+           - ADX: Measures trend strength (values > 25 indicate a strong trend).
+           - EMA (20, 50, 200): Trend confirmation. Check for Golden Cross (Short > Long) or Death Cross.
+           - ATR: Measures volatility (higher ATR means higher risk/reward).
+           - OBV: Volume-based indicator to confirm price trends.
         3. Detailed 24-hour OHLCV data with hourly indicators.
 
         Strategic Guidelines:
