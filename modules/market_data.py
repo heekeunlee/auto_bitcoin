@@ -118,6 +118,8 @@ def get_market_analysis_data(ticker: str = "KRW-BTC") -> Dict:
         df['obv'] = df.ta.obv()
 
         # 2. Get the latest 24 hours of data including indicators
+        # Fill NaNs with 0 to prevent invalid JSON (NaN) which crashes the dashboard
+        df = df.fillna(0)
         last_24h_df = df.tail(24).copy()
         
         # 3. Fix: Convert Timestamp index to string for JSON serialization
@@ -128,14 +130,14 @@ def get_market_analysis_data(ticker: str = "KRW-BTC") -> Dict:
             "ticker": ticker,
             "current_price": pyupbit.get_current_price(ticker),
             "market_summary_now": {
-                "rsi": round(last_24h_df['rsi'].iloc[-1], 2) if 'rsi' in last_24h_df else None,
-                "macd": round(last_24h_df['macd'].iloc[-1], 2) if 'macd' in last_24h_df else None,
-                "supertrend": last_24h_df['supertrend_direction'].iloc[-1] if 'supertrend_direction' in last_24h_df else None, # 1: Bull, -1: Bear
-                "mfi": round(last_24h_df['mfi'].iloc[-1], 2) if 'mfi' in last_24h_df else None,
-                "adx": round(last_24h_df['adx'].iloc[-1], 2) if 'adx' in last_24h_df else None,
+                "rsi": round(last_24h_df['rsi'].iloc[-1], 2) if 'rsi' in last_24h_df else 0,
+                "macd": round(last_24h_df['macd'].iloc[-1], 2) if 'macd' in last_24h_df else 0,
+                "supertrend": last_24h_df['supertrend_direction'].iloc[-1] if 'supertrend_direction' in last_24h_df else 0, # 1: Bull, -1: Bear
+                "mfi": round(last_24h_df['mfi'].iloc[-1], 2) if 'mfi' in last_24h_df else 0,
+                "adx": round(last_24h_df['adx'].iloc[-1], 2) if 'adx' in last_24h_df else 0,
                 "ichimoku_signal": "Above Cloud" if last_24h_df['close'].iloc[-1] > last_24h_df['lead_span_a'].iloc[-1] else "Below Cloud",
                 "trend_ema20_vs_50": "Bullish" if last_24h_df['ema_20'].iloc[-1] > last_24h_df['ema_50'].iloc[-1] else "Bearish",
-                "volatility_atr": round(last_24h_df['atr'].iloc[-1], 2) if 'atr' in last_24h_df else None
+                "volatility_atr": round(last_24h_df['atr'].iloc[-1], 2) if 'atr' in last_24h_df else 0
             },
             "ohlcv_with_indicators_last_24h": last_24h_df.to_dict(orient='index')
         }
