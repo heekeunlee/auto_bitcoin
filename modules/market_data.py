@@ -118,8 +118,8 @@ def get_market_analysis_data(ticker: str = "KRW-BTC") -> Dict:
         df['obv'] = df.ta.obv()
 
         # 2. Get the latest 24 hours of data including indicators
-        # Fill NaNs with 0 to prevent invalid JSON (NaN) which crashes the dashboard
-        df = df.fillna(0)
+        # Fill NaNs/Infs with 0 to prevent invalid JSON which crashes the dashboard
+        df = df.replace([float('inf'), float('-inf')], 0).fillna(0)
         last_24h_df = df.tail(24).copy()
         
         # 3. Fix: Convert Timestamp index to string for JSON serialization
