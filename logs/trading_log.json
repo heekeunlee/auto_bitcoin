@@ -32,5 +32,14 @@
         "decision": "HOLD",
         "reason": "현재 시장 데이터가 불완전하거나 오류로 인해 분석할 수 없습니다. 이는 시장 상황을 정확히 평가할 수 없는 상태로, 잘못된 거래 결정을 내리기 보다는 안전을 위해 HOLD를 선택하는 것이 바람직합니다.",
         "confidence": 0.0
+    },
+    {
+        "timestamp": "2026-03-17 00:33:17",
+        "current_price": 110986000.0,
+        "balance": 0,
+        "avg_buy_price": 0,
+        "decision": "HOLD",
+        "reason": "Error during AI analysis: Error code: 401 - {'error': {'message': \"You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY), or as the password field (with blank username) if you're accessing the API from your browser and are prompted for a username and password. You can obtain an API key from https://platform.openai.com/account/api-keys.\", 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+        "confidence": 0
     }
 ]
