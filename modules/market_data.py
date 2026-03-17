@@ -1,11 +1,7 @@
 import pyupbit
 import pandas as pd
 from typing import Dict, Optional
-import ta
 import pandas_ta as pta
-from ta.momentum import RSIIndicator
-from ta.trend import MACD
-from ta.volatility import BollingerBands
 import os
 from dotenv import load_dotenv
 
@@ -69,31 +65,38 @@ def get_market_analysis_data(ticker: str = "KRW-BTC") -> Dict:
         if df is None or df.empty:
             return {"error": "Failed to retrieve OHLCV data"}
 
-        # --- 1. Basic Indicators (using ta library) ---
-        df['rsi'] = RSIIndicator(close=df['close'], window=14).rsi()
-        macd = MACD(close=df['close'])
-        df['macd'] = macd.macd()
-        df['macd_signal'] = macd.macd_signal()
-        df['macd_diff'] = macd.macd_diff()
-        bb = BollingerBands(close=df['close'])
-        df['bb_high'] = bb.bollinger_hband()
-        df['bb_low'] = bb.bollinger_lband()
-        df['bb_mid'] = bb.bollinger_mavg()
+        # --- 1. Basic Indicators (using pandas-ta) ---
+        # RSI
+        df['rsi'] = df.ta.rsi(length=14)
 
-        # --- 2. Advanced Indicators (using pandas-ta GitHub library) ---
+        # MACD
+        macd = df.ta.macd()
+        if macd is not None:
+            df['macd'] = macd.iloc[:, 0]
+            df['macd_signal'] = macd.iloc[:, 2]
+            df['macd_diff'] = macd.iloc[:, 1]
+        
+        # Bollinger Bands
+        bb = df.ta.bbands(length=20, std=2)
+        if bb is not None:
+            df['bb_low'] = bb.iloc[:, 0]
+            df['bb_mid'] = bb.iloc[:, 1]
+            df['bb_high'] = bb.iloc[:, 2]
+
+        # --- 2. Advanced Indicators (using pandas-ta) ---
         # SuperTrend
         supertrend = df.ta.supertrend(length=7, multiplier=3.0)
         if supertrend is not None:
-            df['supertrend'] = supertrend['SUPERT_7_3.0']
-            df['supertrend_direction'] = supertrend['SUPERTd_7_3.0'] # 1 for long, -1 for short
+            df['supertrend'] = supertrend.iloc[:, 0]
+            df['supertrend_direction'] = supertrend.iloc[:, 1] # 1 for long, -1 for short
 
         # Ichimoku Cloud
         ichimoku, span = df.ta.ichimoku()
         if ichimoku is not None:
-            df['span_a'] = ichimoku['ITS_9']
-            df['span_b'] = ichimoku['IKS_26']
-            df['lead_span_a'] = ichimoku['ISPAN_A_26']
-            df['lead_span_b'] = ichimoku['ISPAN_B_52']
+            df['span_a'] = ichimoku.iloc[:, 0]
+            df['span_b'] = ichimoku.iloc[:, 1]
+            df['lead_span_a'] = ichimoku.iloc[:, 2]
+            df['lead_span_b'] = ichimoku.iloc[:, 3]
 
         # Money Flow Index (MFI)
         df['mfi'] = df.ta.mfi(length=14)
@@ -106,10 +109,13 @@ def get_market_analysis_data(ticker: str = "KRW-BTC") -> Dict:
         # ADX (Trend Strength)
         df_adx = df.ta.adx()
         if df_adx is not None:
-            df['adx'] = df_adx['ADX_14']
+            df['adx'] = df_adx.iloc[:, 0]
 
         # ATR (Volatility)
         df['atr'] = df.ta.atr(length=14)
+
+        # OBV (On-Balance Volume)
+        df['obv'] = df.ta.obv()
 
         # 2. Get the latest 24 hours of data including indicators
         last_24h_df = df.tail(24).copy()

@@ -2,5 +2,4 @@ python-dotenv
 openai
 pyupbit
 pandas
-ta
 pandas-ta
