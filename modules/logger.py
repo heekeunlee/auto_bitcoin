@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import os
 
-def log_decision(decision_data: dict, price: float, account_info: dict = None, log_file: str = "logs/trading_log.json"):
+def log_decision(decision_data: dict, price: float, account_info: dict = None, market_data: dict = None, log_file: str = "logs/trading_log.json"):
     """
     Logs the AI decision and market context to a JSON file.
     """
@@ -11,6 +11,7 @@ def log_decision(decision_data: dict, price: float, account_info: dict = None, l
         "current_price": price,
         "balance": account_info.get('balance', 0) if account_info else 0,
         "avg_buy_price": account_info.get('avg_buy_price', 0) if account_info else 0,
+        **(market_data if market_data else {}),
         **decision_data
     }
     

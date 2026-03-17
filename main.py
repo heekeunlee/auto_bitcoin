@@ -46,8 +46,8 @@ def run_trading_cycle():
         print("-------------------\n")
         
         # 5. Log the decision
-        log_decision(decision, market_status['current_price'], account_info)
-        print("[+] Logged decision to logs/trading_log.json")
+        log_decision(decision, market_status['current_price'], account_info, analysis_data)
+        print("[+] Logged decision with full market data to logs/trading_log.json")
         
         # ⚠️ MVP: Physical execution is DISABLED
         print("[!] Execution mode: MVP (Observation Only)")
