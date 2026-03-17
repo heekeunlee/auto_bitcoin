@@ -184,7 +184,7 @@
             <div class="logo-area">
                 <div class="logo-badge">PRO-AI</div>
                 <div class="market-ticker">BTC / KRW</div>
-                <span style="font-size: 10px; color: var(--text-dim); margin-left: 8px; border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">v1.2.3</span>
+                <span style="font-size: 10px; color: var(--text-dim); margin-left: 8px; border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">v1.2.4</span>
             </div>
             <div id="connectionStatus" style="font-size: 12px; color: var(--buy);">● Terminal Live</div>
         </header>
@@ -290,17 +290,25 @@
                 
                 if (data.length === 0) return;
 
-                const latest = data[data.length - 1];
-                updateUI(latest);
-                updateHistory(data);
+                // Find the latest entry that contains the new chart data
+                let latestWithData = null;
+                for (let i = data.length - 1; i >= 0; i--) {
+                    if (data[i].ohlcv_with_indicators_last_24h) {
+                        latestWithData = data[i];
+                        break;
+                    }
+                }
 
-                // Prepare Chart Data
-                const ohlcvData = latest.ohlcv_with_indicators_last_24h;
-                if (!ohlcvData) {
-                    console.warn("New indicator data format not found. Waiting for first execution of v1.2.0 script.");
+                if (!latestWithData) {
+                    console.warn("New indicator data format not found yet. Chart will appear after the next successful run.");
                     return;
                 }
                 
+                const latest = data[data.length - 1]; // Still use real latest for indicators
+                updateUI(latest);
+                updateHistory(data);
+
+                const ohlcvData = latestWithData.ohlcv_with_indicators_last_24h;
                 const candleData = [];
                 const volumeData = [];
                 const ema20Data = [];
