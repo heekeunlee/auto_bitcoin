@@ -5,6 +5,9 @@ on:
     - cron: '0 * * * *' # 매 정시마다 실행 (1시간 간격)
   workflow_dispatch: # 수동 실행 버튼 추가
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
