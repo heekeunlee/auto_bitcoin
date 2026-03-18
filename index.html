@@ -64,17 +64,24 @@
             margin-bottom: 24px;
         }
 
-        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-area { display: flex; align-items: center; gap: 8px; }
         .logo-badge { 
             background: var(--accent); 
             color: #fff; 
-            padding: 6px 12px; 
-            border-radius: 8px; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
             font-weight: 700; 
-            font-size: 13px; 
+            font-size: 11px; 
             letter-spacing: -0.2px;
+            white-space: nowrap;
         }
-        .market-ticker { font-weight: 700; font-size: 20px; letter-spacing: -0.5px; }
+        .market-ticker { font-weight: 700; font-size: 18px; letter-spacing: -0.5px; white-space: nowrap; }
+
+        @media (max-width: 480px) {
+            .market-ticker { font-size: 16px; }
+            .logo-badge { padding: 3px 6px; font-size: 10px; }
+            header { padding: 16px; }
+        }
 
         /* Left Side: Charts */
         .chart-card {
@@ -216,13 +223,22 @@
         }
 
         .version-badge {
-            font-size: 11px;
+            font-size: 10px;
             color: #adb5bd;
             font-weight: 500;
-            margin-left: 10px;
+            margin-left: 4px;
             background: #f1f3f5;
-            padding: 2px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
+        }
+
+        .contact-info {
+            text-align: right;
+            font-size: 11px;
+            color: #adb5bd;
+            margin-bottom: 12px;
+            opacity: 0.8;
+            padding-right: 8px;
         }
 
         /* Splash Screen */
@@ -285,10 +301,12 @@
             <div class="logo-area">
                 <div class="logo-badge">COINCHELIN</div>
                 <div class="market-ticker">코인슐랭</div>
-                <span class="version-badge">v1.4.0</span>
+                <span class="version-badge">v1.4.1</span>
             </div>
             <div id="connectionStatus">Terminal Live</div>
         </header>
+
+        <div class="contact-info">문의: 이희근 clzmyiz@gmail.com</div>
 
         <main class="main-content">
             <div class="chart-card">
@@ -307,6 +325,7 @@
                 <div class="panel-title">Real-time Terminal</div>
                 <div class="price-display" id="mainPrice">--</div>
                 <div id="mainDecision" class="decision-badge badge-hold">AWAITING SIGNAL</div>
+                <div id="decisionTime" style="text-align: center; font-size: 12px; color: var(--text-dim); margin-top: -24px; margin-bottom: 24px; font-weight: 500;">--</div>
                 
                 <div class="indicator-grid">
                     <div class="indicator-item">
@@ -478,6 +497,11 @@
             } else {
                 badge.innerText = '관망(보류)';
                 badge.className = 'decision-badge badge-hold';
+            }
+
+            // Update Decision Timestamp
+            if (latest.timestamp) {
+                document.getElementById('decisionTime').innerText = `기준: ${latest.timestamp}`;
             }
 
             if (latest.market_summary_now) {
