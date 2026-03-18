@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Institutional Trading Terminal | BTC</title>
+    <title>코인슐랭 | AI Crypto Guide</title>
     <!-- TradingView Lightweight Charts -->
     <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -224,15 +224,68 @@
             padding: 2px 8px;
             border-radius: 4px;
         }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        .splash-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        .splash-title {
+            font-size: 40px;
+            font-weight: 800;
+            color: #191f28;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
+
+        .splash-disclaimer {
+            font-size: 13px;
+            color: #8b95a1;
+            font-weight: 500;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
     </style>
 </head>
 <body>
+    <!-- Splash Screen Overlay -->
+    <div id="splash-screen">
+        <div class="splash-emoji">🥘🪙</div>
+        <h1 class="splash-title">코인슐랭</h1>
+        <p class="splash-disclaimer">투자의 책임은 투자자 본인에게...</p>
+    </div>
+
     <div class="terminal-container">
         <header>
             <div class="logo-area">
-                <div class="logo-badge">PRO-AI</div>
-                <div class="market-ticker">BTC / KRW</div>
-                <span class="version-badge">v1.3.1</span>
+                <div class="logo-badge">COINCHELIN</div>
+                <div class="market-ticker">코인슐랭</div>
+                <span class="version-badge">v1.4.0</span>
             </div>
             <div id="connectionStatus">Terminal Live</div>
         </header>
@@ -457,6 +510,12 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Splash Screen Timer
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('hidden');
+            }, 3000);
+
             initChart();
             loadTradingData();
             setInterval(loadTradingData, 60000);
