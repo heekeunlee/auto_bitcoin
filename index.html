@@ -184,7 +184,7 @@
             <div class="logo-area">
                 <div class="logo-badge">PRO-AI</div>
                 <div class="market-ticker">BTC / KRW</div>
-                <span style="font-size: 10px; color: var(--text-dim); margin-left: 8px; border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">v1.2.6</span>
+                <span style="font-size: 10px; color: var(--text-dim); margin-left: 8px; border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;">v1.2.7</span>
             </div>
             <div id="connectionStatus" style="font-size: 12px; color: var(--buy);">● Terminal Live</div>
         </header>
@@ -240,47 +240,59 @@
     </div>
 
     <script>
-        let chart, candleSeries, volumeSeries, rsiSeries, ema20Series, ema50Series;
+        let chart, candleSeries, volumeSeries, ema20Series, ema50Series;
+        let isChartInitialized = false;
 
         function initChart() {
-            const chartOptions = {
-                layout: {
-                    background: { type: 'solid', color: '#161a1e' },
-                    textColor: '#d1d4dc',
-                },
-                grid: {
-                    vertLines: { color: 'rgba(42, 46, 57, 0.5)' },
-                    horzLines: { color: 'rgba(42, 46, 57, 0.5)' },
-                },
-                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-                priceScale: { borderColor: '#485c7b' },
-                timeScale: { borderColor: '#485c7b', timeVisible: true, secondsVisible: false },
-            };
+            try {
+                const chartContainer = document.getElementById('tvChart');
+                if (!chartContainer) {
+                    console.error("Chart container #tvChart not found.");
+                    return;
+                }
 
-            chart = LightweightCharts.createChart(document.getElementById('tvChart'), chartOptions);
-            
-            candleSeries = chart.addCandlestickSeries({
-                upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
-                wickUpColor: '#26a69a', wickDownColor: '#ef5350',
-            });
+                const chartOptions = {
+                    layout: {
+                        background: { type: 'solid', color: '#161a1e' },
+                        textColor: '#d1d4dc',
+                    },
+                    grid: {
+                        vertLines: { color: 'rgba(42, 46, 57, 0.5)' },
+                        horzLines: { color: 'rgba(42, 46, 57, 0.5)' },
+                    },
+                    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                    priceScale: { borderColor: '#485c7b' },
+                    timeScale: { borderColor: '#485c7b', timeVisible: true, secondsVisible: false },
+                };
 
-            // Volume Series
-            volumeSeries = chart.addHistogramSeries({
-                color: '#26a69a',
-                priceFormat: { type: 'volume' },
-                priceScaleId: '', // Overlay over price
-            });
-            volumeSeries.priceScale().applyOptions({
-                scaleMargins: { top: 0.8, bottom: 0 },
-            });
+                chart = LightweightCharts.createChart(chartContainer, chartOptions);
+                
+                candleSeries = chart.addCandlestickSeries({
+                    upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
+                    wickUpColor: '#26a69a', wickDownColor: '#ef5350',
+                });
 
-            // EMA Series
-            ema20Series = chart.addLineSeries({ color: '#2962FF', lineWidth: 1, title: 'EMA 20' });
-            ema50Series = chart.addLineSeries({ color: '#FF6D00', lineWidth: 1, title: 'EMA 50' });
+                volumeSeries = chart.addHistogramSeries({
+                    color: '#26a69a',
+                    priceFormat: { type: 'volume' },
+                    priceScaleId: '',
+                });
+                volumeSeries.priceScale().applyOptions({
+                    scaleMargins: { top: 0.8, bottom: 0 },
+                });
 
-            window.addEventListener('resize', () => {
-                chart.applyOptions({ width: document.getElementById('tvChart').clientWidth });
-            });
+                ema20Series = chart.addLineSeries({ color: '#2962FF', lineWidth: 1, title: 'EMA 20' });
+                ema50Series = chart.addLineSeries({ color: '#FF6D00', lineWidth: 1, title: 'EMA 50' });
+
+                window.addEventListener('resize', () => {
+                    chart.applyOptions({ width: chartContainer.clientWidth });
+                });
+
+                isChartInitialized = true;
+                console.log("Chart initialized successfully.");
+            } catch (err) {
+                console.error("Failed to initialize chart:", err);
+            }
         }
 
         async function loadTradingData() {
@@ -288,9 +300,9 @@
                 const response = await fetch('logs/trading_log.json');
                 const data = await response.json();
                 
-                if (data.length === 0) return;
+                if (!data || data.length === 0) return;
 
-                // Find the latest entry that contains the new chart data
+                // Find the latest entry with data
                 let latestWithData = null;
                 for (let i = data.length - 1; i >= 0; i--) {
                     if (data[i].ohlcv_with_indicators_last_24h) {
@@ -299,22 +311,21 @@
                     }
                 }
 
-                if (!latestWithData) {
-                    console.warn("New indicator data format not found yet. Chart will appear after the next successful run.");
-                    return;
-                }
-                
-                const latest = data[data.length - 1]; // Still use real latest for indicators
+                const latest = data[data.length - 1];
                 updateUI(latest);
                 updateHistory(data);
 
+                if (!latestWithData || !isChartInitialized) {
+                    console.warn("Waiting for chart data/initialization...");
+                    return;
+                }
+                
                 const ohlcvData = latestWithData.ohlcv_with_indicators_last_24h;
                 const candleData = [];
                 const volumeData = [];
                 const ema20Data = [];
                 const ema50Data = [];
 
-                // Sort by time
                 const sortedTimeKeys = Object.keys(ohlcvData).sort();
                 
                 sortedTimeKeys.forEach(timeStr => {
@@ -336,12 +347,11 @@
                     if (d.ema_50) ema50Data.push({ time: timestamp, value: d.ema_50 });
                 });
 
-                candleSeries.setData(candleData);
-                volumeSeries.setData(volumeData);
-                ema20Series.setData(ema20Data);
-                ema50Series.setData(ema50Data);
+                if (candleSeries) candleSeries.setData(candleData);
+                if (volumeSeries) volumeSeries.setData(volumeData);
+                if (ema20Series) ema20Series.setData(ema20Data);
+                if (ema50Series) ema50Series.setData(ema50Data);
 
-                // Fitting the chart
                 chart.timeScale().fitContent();
 
             } catch (error) {
@@ -350,10 +360,11 @@
         }
 
         function updateUI(latest) {
-            document.getElementById('mainPrice').innerText = latest.current_price.toLocaleString() + ' KRW';
-            const decision = latest.decision;
+            if (!latest) return;
+            document.getElementById('mainPrice').innerText = (latest.current_price || 0).toLocaleString() + ' KRW';
+            const decision = latest.decision || 'HOLD';
             const badge = document.getElementById('mainDecision');
-            badge.innerText = decision === 'BUY' ? 'STRONGE BUY SIGNAL' : (decision === 'SELL' ? 'SELL SIGNAL' : 'NEUTRAL / HOLD');
+            badge.innerText = decision === 'BUY' ? 'STRONG BUY SIGNAL' : (decision === 'SELL' ? 'SELL SIGNAL' : 'NEUTRAL / HOLD');
             badge.className = 'decision-badge ' + (decision === 'BUY' ? 'badge-buy' : (decision === 'SELL' ? 'badge-sell' : 'badge-hold'));
 
             if (latest.market_summary_now) {
@@ -365,29 +376,31 @@
                 document.getElementById('trendVal').innerText = msn.trend_ema20_vs_50 || '--';
             }
 
-            document.getElementById('aiReason').innerText = latest.reason;
+            document.getElementById('aiReason').innerText = latest.reason || '분석 중...';
         }
 
         function updateHistory(data) {
             const list = document.getElementById('historyList');
+            if (!list || !data) return;
             const reverseData = data.slice().reverse();
             list.innerHTML = reverseData.slice(0, 20).map(log => `
                 <div class="history-item">
                     <div>
-                        <div class="history-price">${log.current_price.toLocaleString()}</div>
-                        <div class="history-time">${log.timestamp.split(' ')[1]}</div>
+                        <div class="history-price">${(log.current_price || 0).toLocaleString()}</div>
+                        <div class="history-time">${log.timestamp ? log.timestamp.split(' ')[1] : '--:--:--'}</div>
                     </div>
                     <div style="font-weight: 700; color: ${log.decision === 'BUY' ? 'var(--buy)' : (log.decision === 'SELL' ? 'var(--sell)' : 'var(--text-dim)')}">
-                        ${log.decision}
+                        ${log.decision || 'HOLD'}
                     </div>
                 </div>
             `).join('');
         }
 
-        initChart();
-        loadTradingData();
-        // Refresh every minute for pro feel
-        setInterval(loadTradingData, 60000);
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            loadTradingData();
+            setInterval(loadTradingData, 60000);
+        });
     </script>
 </body>
 </html>
