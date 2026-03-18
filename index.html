@@ -137,15 +137,16 @@
         }
 
         .decision-badge {
-            display: inline-block;
-            padding: 12px;
-            border-radius: 14px;
-            font-weight: 700;
-            font-size: 15px;
+            display: block;
+            padding: 20px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 44px;
             text-align: center;
             width: 100%;
-            margin-bottom: 24px;
-            transition: all 0.2s ease;
+            margin-bottom: 32px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: -1.5px;
         }
 
         .badge-buy { background: #fff1f2; color: var(--buy); }
@@ -231,7 +232,7 @@
             <div class="logo-area">
                 <div class="logo-badge">PRO-AI</div>
                 <div class="market-ticker">BTC / KRW</div>
-                <span class="version-badge">v1.3.0</span>
+                <span class="version-badge">v1.3.1</span>
             </div>
             <div id="connectionStatus">Terminal Live</div>
         </header>
@@ -413,8 +414,18 @@
             document.getElementById('mainPrice').innerText = (latest.current_price || 0).toLocaleString() + ' KRW';
             const decision = latest.decision || 'HOLD';
             const badge = document.getElementById('mainDecision');
-            badge.innerText = decision === 'BUY' ? 'STRONG BUY SIGNAL' : (decision === 'SELL' ? 'SELL SIGNAL' : 'NEUTRAL / HOLD');
-            badge.className = 'decision-badge ' + (decision === 'BUY' ? 'badge-buy' : (decision === 'SELL' ? 'badge-sell' : 'badge-hold'));
+            
+            // Large Korean Decision Labels
+            if (decision === 'BUY') {
+                badge.innerText = '강력 매수';
+                badge.className = 'decision-badge badge-buy';
+            } else if (decision === 'SELL') {
+                badge.innerText = '강력 매도';
+                badge.className = 'decision-badge badge-sell';
+            } else {
+                badge.innerText = '관망(보류)';
+                badge.className = 'decision-badge badge-hold';
+            }
 
             if (latest.market_summary_now) {
                 const msn = latest.market_summary_now;
